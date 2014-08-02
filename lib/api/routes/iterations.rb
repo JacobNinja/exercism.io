@@ -1,3 +1,7 @@
+# Currently needs to be on load path since I haven't written a gemspec yet
+require 'exercism-analysis-api'
+require 'exercism-analysis-api/workers/analysis_worker'
+
 module ExercismAPI
   module Routes
     class Iterations < Core
@@ -34,6 +38,7 @@ module ExercismAPI
         end
 
         attempt.save
+        AnalysisWorker.perform_async(attempt.submission.key, attempt.language, attempt.code)
         Notify.everyone(attempt.submission.reload, 'code', user)
         # if we don't have a 'fetched' event, we want to hack one in.
         LifecycleEvent.track('fetched', user.id)
